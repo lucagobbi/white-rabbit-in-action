@@ -33,12 +33,11 @@ def schedule_function(type_of_schedule: str, func: Callable[[str], str], *args, 
     if type_of_schedule == "fixed_date":
         seconds = extract_seconds()
         log.debug(f"WhiteRabbitInAction - Schedule date: {seconds}")
-        return stray_cat.white_rabbit.schedule_job(func, seconds=seconds, *args, **kwargs)
+        return stray_cat.white_rabbit.schedule_job(func, seconds=seconds, *args, **extract_args_as_kwargs(func, *args, **kwargs))
     elif type_of_schedule == "cron_based":
         cron_expression = stray_cat.llm(f"Deduce the exact cron expression (e.g. 0 7 * * *) from this message: {user_message}")
         log.debug(f"WhiteRabbitInAction - Schedule cron: {cron_expression}")
-        kwargs = extract_args_as_kwargs(func, *args, **kwargs)
-        return stray_cat.white_rabbit.schedule_cron_job(func, **parse_cron_expression(cron_expression), **kwargs)
+        return stray_cat.white_rabbit.schedule_cron_job(func, **parse_cron_expression(cron_expression), **extract_args_as_kwargs(func, *args, **kwargs))
     else:
         raise ValueError(f"WhiteRabbitInAction - Unknown schedule type: {type_of_schedule}")
 
@@ -123,7 +122,7 @@ def resume_job_by_id(job_id: str, cat: StrayCat):
 # Example usage of the white rabbit tool
 #
 # @white_rabbit_tool
-# def turn_on_lights(cat: StrayCat):
+# def turn_on_lights(user_input, cat: StrayCat):
 #     """
 #     Call this tool whenever the user wants to turn on the lights.
 #     """
